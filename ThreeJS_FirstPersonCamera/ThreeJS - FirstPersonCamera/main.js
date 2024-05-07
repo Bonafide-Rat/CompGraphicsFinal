@@ -281,25 +281,18 @@ class FirstPersonCameraDemo {
 
     const mapLoader = new THREE.TextureLoader();
     const maxAnisotropy = this.threejs_.capabilities.getMaxAnisotropy();
-    const checkerboard = mapLoader.load('resources/checkerboard.png');
-    checkerboard.anisotropy = maxAnisotropy;
-    checkerboard.wrapS = THREE.RepeatWrapping;
-    checkerboard.wrapT = THREE.RepeatWrapping;
-    checkerboard.repeat.set(32, 32);
-    checkerboard.encoding = THREE.sRGBEncoding;
+    const rockTexture = mapLoader.load('resources/img/rocktexture.png');
+    const rockNormal = mapLoader.load('resources/img/rocknormal.png');
 
-    const plane = new THREE.Mesh(
-      new THREE.PlaneGeometry(100, 100, 10, 10),
-      new THREE.MeshStandardMaterial({map: checkerboard}));
-    plane.castShadow = false;
-    plane.receiveShadow = true;
-    plane.rotation.x = -Math.PI / 2;
-    this.scene_.add(plane);
+    const physicsWorld = new CANNON.World({
+      gravity: new CANNON.Vec3(0,-9.82, 0),
+    });
 
-    // Create Box3 for the plane so that we can do some easy intersection tests.
-    const planeBox = new THREE.Box3();
-    planeBox.setFromObject(plane);
-    this.objects_ = [planeBox];
+    const terrainGenerator = new TerrainGeneration(this.scene_,physicsWorld, rockTexture, rockNormal, 25);
+
+    terrainGenerator.CreateGrid(3,3,50);
+
+    this.objects_ = [];
 
     // Crosshair
     const crosshair = mapLoader.load('resources/crosshair.png');
