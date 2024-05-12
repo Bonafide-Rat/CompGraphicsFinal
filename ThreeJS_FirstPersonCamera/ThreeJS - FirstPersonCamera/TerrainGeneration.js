@@ -108,9 +108,9 @@ class TerrainGeneration{
           }
     CreateRoom(centrePoint, floorSize){
             const walls = [];
-            const floor = this.CreateWall(new THREE.Vector3(centrePoint.x,centrePoint.y - floorSize/2,centrePoint.z), Math.PI / 2, 0, floorSize/5, floorSize);
-            const ceiling = this.CreateWall(new THREE.Vector3(centrePoint.x,centrePoint.y + floorSize/2,centrePoint.z), Math.PI / 2, 0, floorSize/5,floorSize);
-            
+            const floor = this.CreateWall(new THREE.Vector3(centrePoint.x,centrePoint.y - floorSize/4,centrePoint.z), Math.PI / 2, 0, 1000, floorSize);
+            const ceiling = this.CreateWall(new THREE.Vector3(centrePoint.x,centrePoint.y + floorSize/2,centrePoint.z), Math.PI / 2, 0, 1000,floorSize);
+            this.CreateWall(4,4,4,)
             var wall1 = this.CreateWall(new THREE.Vector3(centrePoint.x - floorSize/2, centrePoint.y,centrePoint.z), 
             0, Math.PI/2, floorSize/2,
             floorSize);
