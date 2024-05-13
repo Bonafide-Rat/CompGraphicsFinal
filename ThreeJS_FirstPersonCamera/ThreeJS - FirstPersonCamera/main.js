@@ -289,8 +289,21 @@ class FirstPersonCameraDemo {
     });
 
     const terrainGenerator = new TerrainGeneration(this.scene_,physicsWorld, rockTexture, rockNormal, 25);
+    
+    const snakingArray = [
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+      [1, 0, 0, 0, 0, 1, 1, 1, 0, 0],
+      [1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+      [1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+  ];
 
-    terrainGenerator.CreateGrid(3,3,50);
+    terrainGenerator.CreateGrid(snakingArray,50);
 
     this.objects_ = [];
 
