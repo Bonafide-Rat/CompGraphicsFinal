@@ -112,87 +112,57 @@ class TerrainGeneration {
   }
   CreateRoom(centrePoint, floorSize, grid, gridPos) {
     const walls = [];
-    const floor = this.CreateWall(new THREE.Vector3(centrePoint.x, centrePoint.y - floorSize / 4, centrePoint.z), Math.PI / 2, 0, 1000, floorSize);
-    const ceiling = this.CreateWall(new THREE.Vector3(centrePoint.x, centrePoint.y + floorSize / 2, centrePoint.z), Math.PI / 2, 0, 1000, floorSize);
+    const wallSize = floorSize / 3; // Define wall size
     this.CreateWall(4, 4, 4,)
     console.log(gridPos)
 
-    if (gridPos.x > 1 && grid[gridPos.x - 1][gridPos.y] == 1) {
-      console.log("adjacentWallWest")
+    const isAdjacentWall = (x, y) => {
+        if (x < 0 || y < 0 || x >= grid.length || y >= grid[0].length) {
+            return false; // Out of bounds, not a wall
+        }
+        return grid[x][y] === 1;
+    };
+
+    // Create walls based on adjacent cells
+    if (!isAdjacentWall(gridPos.x - 1, gridPos.y)) {
+        const wall1 = this.CreateWall(
+            new THREE.Vector3(centrePoint.x - floorSize / 2, centrePoint.y, centrePoint.z),
+            0, Math.PI / 2, wallSize, floorSize
+        );
+        walls.push(wall1);
     }
-    else if(gridPos.x > 1){
-      var wall1 = this.CreateWall(new THREE.Vector3(centrePoint.x - floorSize / 2, centrePoint.y, centrePoint.z),
-        0, Math.PI / 2, floorSize / 3,
-        floorSize);
-      walls.push(wall1);
+    if (!isAdjacentWall(gridPos.x + 1, gridPos.y)) {
+        const wall2 = this.CreateWall(
+            new THREE.Vector3(centrePoint.x + floorSize / 2, centrePoint.y, centrePoint.z),
+            0, Math.PI / 2, wallSize, floorSize
+        );
+        walls.push(wall2);
     }
-    else {
-      var wall1 = this.CreateWall(new THREE.Vector3(centrePoint.x - floorSize / 2, centrePoint.y, centrePoint.z),
-        0, Math.PI / 2, floorSize / 3,
-        floorSize);
-      walls.push(wall1);
+    if (!isAdjacentWall(gridPos.x, gridPos.y - 1)) {
+        const wall3 = this.CreateWall(
+            new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z - floorSize / 2),
+            0, 0, wallSize, floorSize
+        );
+        walls.push(wall3);
+    }
+    if (!isAdjacentWall(gridPos.x, gridPos.y + 1)) {
+        const wall4 = this.CreateWall(
+            new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z + floorSize / 2),
+            0, 0, wallSize, floorSize
+        );
+        walls.push(wall4);
     }
 
-    if (gridPos.x < grid[0].length - 1 && grid[gridPos.x + 1][gridPos.y] == 1) {
-      console.log("adjacentWallEast")
-    }
-
-    else if(gridPos.x < grid[0].length - 1){
-      var wall2 = this.CreateWall(new THREE.Vector3(centrePoint.x + floorSize / 2, centrePoint.y, centrePoint.z),
-        0, Math.PI / 2, floorSize / 3,
-        floorSize);
-      walls.push(wall2);
-    }
-    else {
-      var wall2 = this.CreateWall(new THREE.Vector3(centrePoint.x + floorSize / 2, centrePoint.y, centrePoint.z),
-        0, Math.PI / 2, floorSize / 3,
-        floorSize);
-      walls.push(wall2);
-    }
-
-
-
-    if (gridPos.y > 0 && grid[gridPos.x][gridPos.y - 1] == 1) {
-      console.log("adjacentWallSouth")
-    }
-
-    else if(gridPos.y > 0){
-      var wall3 = this.CreateWall(new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z - floorSize / 2),
-        0, 0, floorSize / 3,
-        floorSize);
-      walls.push(wall3);
-    }
-    else {
-      var wall3 = this.CreateWall(new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z - floorSize / 2),
-        0, 0, floorSize / 3,
-        floorSize);
-      walls.push(wall3);
-    }
-
-
-
-    if (gridPos.y < grid[1].length - 1 && grid[gridPos.x][gridPos.y + 1] == 1) {
-      console.log("adjacentWallNorth")
-    }
-    else if(gridPos.y < grid[1].length - 1){
-      var wall4 = this.CreateWall(new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z + floorSize / 2), 0, 0,
-        floorSize / 3,
-        floorSize);
-      walls.push(wall4);
-    }
-    else {
-      var wall4 = this.CreateWall(new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z + floorSize / 2), 0, 0,
-        floorSize / 3,
-        floorSize);
-      walls.push(wall4);
-    }
+    // Create floor and ceiling
+    const floor = this.CreateWall(new THREE.Vector3(centrePoint.x, centrePoint.y - floorSize / 4, centrePoint.z), Math.PI / 2, 0, 1000, floorSize);
+    const ceiling = this.CreateWall(new THREE.Vector3(centrePoint.x, centrePoint.y + floorSize / 2, centrePoint.z), Math.PI / 2, 0, 1000, floorSize);
 
     const room = {
-      walls: walls.map(w => w.mesh),
-      colliders: walls.map(w => w.body),
-      floor: floor,
-      ceiling: ceiling,
-    }
+        walls: walls.map(w => w.mesh),
+        colliders: walls.map(w => w.body),
+        floor: floor,
+        ceiling: ceiling,
+    };
     return room;
   }
 
