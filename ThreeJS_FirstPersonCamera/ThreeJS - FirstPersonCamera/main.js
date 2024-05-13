@@ -327,6 +327,7 @@ class FirstPersonCameraDemo {
 
 
   initializeLights_() {
+    /*
     const distance = 50.0;
     const angle = Math.PI / 4.0;
     const penumbra = 0.5;
@@ -352,7 +353,42 @@ class FirstPersonCameraDemo {
     light.groundColor.setHSL( 0.095, 1, 0.75 );
     light.position.set(0, 4, 0);
     this.scene_.add(light);
+    */
+
+    this.spotlight = new THREE.SpotLight(0xFFFFFF, 100.0, 50, Math.PI / 4, 0.5, 1.0);
+    this.spotlight.castShadow = true;
+    this.spotlight.shadow.bias = -0.00001;
+    this.spotlight.shadow.mapSize.width = 4096;
+    this.spotlight.shadow.mapSize.height = 4096;
+    this.spotlight.shadow.camera.near = 1;
+    this.spotlight.shadow.camera.far = 100;
+
+    // Add the spotlight to the scene
+    this.scene_.add(this.spotlight);
+
+    // Update spotlight position initially
+    this.updateSpotlightPosition();
+    
+    const ambientLight = new THREE.AmbientLight(0x404040);
+    this.scene_.add(ambientLight);
   }
+
+  updateSpotlightPosition() {
+    // Get the direction the camera is facing
+    const direction = new THREE.Vector3();
+    this.camera_.getWorldDirection(direction);
+
+    // Set spotlight's target position to camera position + direction
+    const targetPosition = new THREE.Vector3();
+    targetPosition.copy(this.camera_.position).add(direction);
+
+    // Update spotlight target position
+    this.spotlight.target.position.copy(targetPosition);
+
+    // Set spotlight position (adjust as needed, e.g., to follow the camera)
+    const offset = new THREE.Vector3(0, 5, -10); // Adjust offset as needed
+    this.spotlight.position.copy(this.camera_.position).add(offset);
+}
 
   loadMaterial_(name, tiling) {
     const mapLoader = new THREE.TextureLoader();
@@ -428,6 +464,8 @@ class FirstPersonCameraDemo {
 
     // this.controls_.update(timeElapsedS);
     this.fpsCamera_.update(timeElapsedS);
+
+    this.updateSpotlightPosition();
   }
 }
 
