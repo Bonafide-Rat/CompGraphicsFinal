@@ -4,6 +4,8 @@ import {FirstPersonControls} from 'https://cdn.skypack.dev/three@0.136/examples/
 
 import TerrainGeneration from './TerrainGeneration';
 
+import Scanner from './Scanner';
+
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import { createNoise2D } from 'simplex-noise';
