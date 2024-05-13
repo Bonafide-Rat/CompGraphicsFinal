@@ -123,7 +123,7 @@ class TerrainGeneration {
         return grid[x][y] === 1;
     };
 
-    // Create walls based on adjacent cells
+    // Create walls based on adjacent cellsaw
     if (!isAdjacentWall(gridPos.x - 1, gridPos.y)) {
         const wall1 = this.CreateWall(
             new THREE.Vector3(centrePoint.x - floorSize / 2, centrePoint.y, centrePoint.z),
@@ -133,7 +133,7 @@ class TerrainGeneration {
     }
     if (!isAdjacentWall(gridPos.x + 1, gridPos.y)) {
         const wall2 = this.CreateWall(
-            new THREE.Vector3(centrePoint.x + floorSize / 2, centrePoint.y, centrePoint.z),
+            new THREE.Vector3(centrePoint.x + floorSize / 3, centrePoint.y, centrePoint.z),
             0, Math.PI / 2, wallSize, floorSize
         );
         walls.push(wall2);
@@ -147,7 +147,7 @@ class TerrainGeneration {
     }
     if (!isAdjacentWall(gridPos.x, gridPos.y + 1)) {
         const wall4 = this.CreateWall(
-            new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z + floorSize / 2),
+            new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z + floorSize / 3),
             0, 0, wallSize, floorSize
         );
         walls.push(wall4);
@@ -177,7 +177,7 @@ class TerrainGeneration {
 
     const rows = grid.length;
     const columns = grid[1].length;
-    const roomSpacing = floorSize * 0.9;
+    const roomSpacing = floorSize * 0.95;
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < columns; j++) {
         if (grid[i][j] == 1) {

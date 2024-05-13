@@ -14,6 +14,7 @@ import CannonDebugger from 'cannon-es-debugger';
 
 import Stats from 'stats.js';
 
+const moveSpeed = 5;
 
 const KEYS = {
   'a': 65,
@@ -184,8 +185,8 @@ class FirstPersonCamera {
   }
 
   updateTranslation_(timeElapsedS) {
-    const forwardVelocity = (this.input_.key(KEYS.w) ? 1 : 0) + (this.input_.key(KEYS.s) ? -1 : 0);
-    const strafeVelocity = (this.input_.key(KEYS.a) ? 1 : 0) + (this.input_.key(KEYS.d) ? -1 : 0);
+    const forwardVelocity = ((this.input_.key(KEYS.w) ? 1 : 0) + (this.input_.key(KEYS.s) ? -1 : 0)) * moveSpeed;
+    const strafeVelocity = ((this.input_.key(KEYS.a) ? 1 : 0) + (this.input_.key(KEYS.d) ? -1 : 0)) * moveSpeed;
 
     const qx = new THREE.Quaternion();
     qx.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.phi_);
@@ -209,6 +210,12 @@ class FirstPersonCamera {
 
     this.phi_ += -xh * this.phiSpeed_;
     this.theta_ = clamp(this.theta_ + -yh * this.thetaSpeed_, -Math.PI / 3, Math.PI / 3);
+
+    if (this.phi_ > Math.PI) {
+      this.phi_ -= Math.PI * 2;
+    } else if (this.phi_ < -Math.PI) {
+      this.phi_ += Math.PI * 2;
+    }
 
     const qx = new THREE.Quaternion();
     qx.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.phi_);
