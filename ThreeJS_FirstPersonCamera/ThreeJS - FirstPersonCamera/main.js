@@ -244,7 +244,6 @@ class FirstPersonCameraDemo {
     this.initializeScene_();
     this.initializePostFX_();
     this.initializeDemo_();
-
     this.previousRAF_ = null;
     this.raf_();
     this.onWindowResize_();
@@ -355,39 +354,34 @@ class FirstPersonCameraDemo {
     this.scene_.add(light);
     */
 
-    this.spotlight = new THREE.SpotLight(0xFFFFFF, 100.0, 50, Math.PI / 4, 0.5, 1.0);
+    this.spotlight = new THREE.SpotLight(0xFFFFFF, 100.0, 100, Math.PI / 6, 0.5, 1.0);
     this.spotlight.castShadow = true;
     this.spotlight.shadow.bias = -0.00001;
     this.spotlight.shadow.mapSize.width = 4096;
     this.spotlight.shadow.mapSize.height = 4096;
     this.spotlight.shadow.camera.near = 1;
     this.spotlight.shadow.camera.far = 100;
-
-    // Add the spotlight to the scene
+    this.spotlight.position.copy(this.camera_.position);
     this.scene_.add(this.spotlight);
-
-    // Update spotlight position initially
-    this.updateSpotlightPosition();
-    
-    const ambientLight = new THREE.AmbientLight(0x404040);
-    this.scene_.add(ambientLight);
   }
 
   updateSpotlightPosition() {
-    // Get the direction the camera is facing
-    const direction = new THREE.Vector3();
-    this.camera_.getWorldDirection(direction);
+    // Set the spotlight's position relative to the camera's position
+  this.spotlight.position.copy(this.camera_.position);
+  //this.spotlight.position.z = this.camera_.position.z + 10; // Adjust this value as needed
+  // Set the spotlight's direction to match the camera's forward direction
+  const forward = new THREE.Vector3(0, 0, -1);
+  console.log();
+  
+  forward.applyQuaternion(this.camera_.quaternion);
+  const targetPosition = new THREE.Vector3().copy(this.camera_.position).add(forward);
+  this.spotlight.target.position.copy(targetPosition);
 
-    // Set spotlight's target position to camera position + direction
-    const targetPosition = new THREE.Vector3();
-    targetPosition.copy(this.camera_.position).add(direction);
+  // Point the spotlight at its target
+  this.spotlight.target.updateMatrixWorld(); // Ensure the target's matrix is updated
+  this.spotlight.lookAt(targetPosition);
 
-    // Update spotlight target position
-    this.spotlight.target.position.copy(targetPosition);
-
-    // Set spotlight position (adjust as needed, e.g., to follow the camera)
-    const offset = new THREE.Vector3(0, 5, -10); // Adjust offset as needed
-    this.spotlight.position.copy(this.camera_.position).add(offset);
+  console.log("camera pos: ",this.camera_.position,"spotlight pos: ",this.spotlight.position, "camera quaternion: ", this.camera_.quaternion, "spotlight quaternion: ", this.spotlight.quaternion);
 }
 
   loadMaterial_(name, tiling) {
@@ -461,11 +455,10 @@ class FirstPersonCameraDemo {
 
   step_(timeElapsed) {
     const timeElapsedS = timeElapsed * 0.001;
-
     // this.controls_.update(timeElapsedS);
-    this.fpsCamera_.update(timeElapsedS);
-
+    //console.log(this.camera_.rotation)
     this.updateSpotlightPosition();
+    this.fpsCamera_.update(timeElapsedS);
   }
 }
 
