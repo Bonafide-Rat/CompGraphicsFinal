@@ -190,10 +190,6 @@ class TerrainGeneration {
     }
   }
 
-
-
-
-
   RemoveWalls(room) {
     room.walls.forEach((wall, index) => {
       this.scene.remove(wall);
@@ -203,5 +199,54 @@ class TerrainGeneration {
       }
     });
   }
+
+    generateMaze(rows, cols) {
+    const maze = Array.from({ length: rows }, () => Array(cols).fill(0));
+    const directions = [
+      [1, 0],  // Down
+      [0, 1],  // Right
+      [-1, 0], // Up
+      [0, -1]  // Left
+    ];
+  
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+  
+    function isValid(x, y) {
+      return x >= 0 && y >= 0 && x < rows && y < cols;
+    }
+  
+    function carvePath(x, y) {
+      maze[x][y] = 1; // Mark the cell as part of the path
+      const shuffledDirections = shuffle(directions.slice());
+  
+      for (const [dx, dy] of shuffledDirections) {
+        const nx = x + dx * 2;
+        const ny = y + dy * 2;
+  
+        if (isValid(nx, ny) && maze[nx][ny] === 0) {
+          maze[x + dx][y + dy] = 1; // Mark the cell in between as part of the path
+          carvePath(nx, ny);
+        }
+      }
+    }
+  
+    // Start carving from (0, 0)
+    carvePath(0, 0);
+  
+    // Ensure there is a path from (0, 0) to (rows-1, cols-1)
+    if (maze[rows - 1][cols - 1] === 0) {
+      maze[rows - 1][cols - 1] = 1;
+      maze[rows - 2][cols - 1] = 1;
+    }
+  
+    return maze;
+  }
+  
 }
 export default TerrainGeneration;

@@ -55,15 +55,19 @@ class InputController {
   }
 
   onMouseMove_(e) {
-    this.current_.mouseX = e.pageX - window.innerWidth / 2;
-    this.current_.mouseY = e.pageY - window.innerHeight / 2;
+    const movementX = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
+    const movementY = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
 
+    this.current_.mouseXDelta = movementX;
+    this.current_.mouseYDelta = movementY;
+
+    // You may choose to remove the previous_ check here if needed
     if (this.previous_ === null) {
-      this.previous_ = {...this.current_};
+        this.previous_ = { ...this.current_ };
     }
 
-    this.current_.mouseXDelta = this.current_.mouseX - this.previous_.mouseX;
-    this.current_.mouseYDelta = this.current_.mouseY - this.previous_.mouseY;
+    this.current_.mouseX += movementX;
+    this.current_.mouseY += movementY;
   }
 
   onMouseDown_(e) {
@@ -298,15 +302,10 @@ class FirstPersonCameraDemo {
 
     const terrainGenerator = new TerrainGeneration(this.scene_,physicsWorld, rockTexture, rockNormal, 25);
     
-    const snakingArray = [
-      [1, 0, 1, 1, 1],
-      [1, 0, 1, 0, 1],
-      [1, 0, 1, 0, 1],
-      [1, 0, 1, 0, 1],
-      [1, 1, 1, 0, 1]
-  ];
+    const snakingArray = terrainGenerator.generateMaze(10,10);
 
-    terrainGenerator.CreateGrid(snakingArray,50);
+    terrainGenerator.CreateGrid(snakingArray,70);
+    console.log(snakingArray.map(row => row.join(' ')).join('\n'));
 
     this.objects_ = [];
 
@@ -326,34 +325,7 @@ class FirstPersonCameraDemo {
 
 
   initializeLights_() {
-    /*
-    const distance = 50.0;
-    const angle = Math.PI / 4.0;
-    const penumbra = 0.5;
-    const decay = 1.0;
-
-    let light = new THREE.SpotLight(
-        0xFFFFFF, 100.0, distance, angle, penumbra, decay);
-    light.castShadow = true;
-    light.shadow.bias = -0.00001;
-    light.shadow.mapSize.width = 4096;
-    light.shadow.mapSize.height = 4096;
-    light.shadow.camera.near = 1;
-    light.shadow.camera.far = 100;
-
-    light.position.set(25, 25, 0);
-    light.lookAt(0, 0, 0);
-    this.scene_.add(light);
-
-    const upColour = 0xFFFF80;
-    const downColour = 0x808080;
-    light = new THREE.HemisphereLight(upColour, downColour, 0.5);
-    light.color.setHSL( 0.6, 1, 0.6 );
-    light.groundColor.setHSL( 0.095, 1, 0.75 );
-    light.position.set(0, 4, 0);
-    this.scene_.add(light);
-    */
-
+  
     this.spotlight = new THREE.SpotLight(0xFFFFFF, 100.0, 100, Math.PI / 6, 0.5, 1.0);
     this.spotlight.castShadow = true;
     this.spotlight.shadow.bias = -0.00001;
@@ -363,25 +335,26 @@ class FirstPersonCameraDemo {
     this.spotlight.shadow.camera.far = 100;
     this.spotlight.position.copy(this.camera_.position);
     this.scene_.add(this.spotlight);
+
+
+    this.ambientLight = new THREE.AmbientLight(0xFFFFFF);
+    this.scene_.add(this.ambientLight);
   }
 
   updateSpotlightPosition() {
-    // Set the spotlight's position relative to the camera's position
+  // Set the spotlight's position relative to the camera's position
   this.spotlight.position.copy(this.camera_.position);
-  //this.spotlight.position.z = this.camera_.position.z + 10; // Adjust this value as needed
-  // Set the spotlight's direction to match the camera's forward direction
   const forward = new THREE.Vector3(0, 0, -1);
   console.log();
   
+  //Rotate the Spotlight to face the direciton camera is pointing
   forward.applyQuaternion(this.camera_.quaternion);
-  const targetPosition = new THREE.Vector3().copy(this.camera_.position).add(forward);
+  const targetPosition = new THREE.Vector3().copy(this.camera_.position).add(forward).add(new THREE.Vector3(0, -0.5, 0));;
   this.spotlight.target.position.copy(targetPosition);
 
   // Point the spotlight at its target
-  this.spotlight.target.updateMatrixWorld(); // Ensure the target's matrix is updated
+  this.spotlight.target.updateMatrixWorld(); //Update target Matrix
   this.spotlight.lookAt(targetPosition);
-
-  console.log("camera pos: ",this.camera_.position,"spotlight pos: ",this.spotlight.position, "camera quaternion: ", this.camera_.quaternion, "spotlight quaternion: ", this.spotlight.quaternion);
 }
 
   loadMaterial_(name, tiling) {
