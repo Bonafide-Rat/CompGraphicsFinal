@@ -337,7 +337,7 @@ class FirstPersonCameraDemo {
 
   initializeLights_() {
   
-    this.spotlight = new THREE.SpotLight(0xFFFFFF, 50.0, 120, Math.PI / 6, 0.8, 1.0);
+    this.spotlight = new THREE.SpotLight(0xFFFFFF, 20.0, 120, Math.PI / 6, 0.8, 1.0);
     this.spotlight.castShadow = true;
     this.spotlight.shadow.bias = -0.00001;
     this.spotlight.shadow.mapSize.width = 4096;

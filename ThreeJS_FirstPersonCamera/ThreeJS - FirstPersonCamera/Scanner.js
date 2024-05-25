@@ -5,26 +5,35 @@ class Scanner {
     this.scene = scene;
     this.camera = camera;
     this.dots = [];
-    this.dotLifetime = 10.0; // Dots will last for 2 seconds
+    this.dotLifetime = 20.0; // Dots will last for 2 seconds
   }
 
   scan() {
-    const density = 200; // Number of dots to generate
+    const density = 50; // Number of dots to generate
     const maxDistance = 100; // Maximum distance to cast rays
-    const coneAngle = Math.PI / 4; // Cone angle in radians (45 degrees)
+    const coneAngle = Math.PI / 2; // Cone angle in radians (90 degrees)
+    const numRays = 50; // Number of rays to cast within the cone
 
-    for (let i = 0; i < density; i++) {
+    // Get camera direction
+    const cameraDirection = new THREE.Vector3();
+    this.camera.getWorldDirection(cameraDirection);
+
+    // Calculate rotation axis perpendicular to camera direction
+    const rotationAxis = new THREE.Vector3();
+    rotationAxis.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0)).normalize();
+
+    // Calculate step angle between each ray
+    const stepAngle = coneAngle / numRays;
+
+    // Start angle for the first ray
+    const startAngle = -coneAngle / 2;
+
+    for (let i = 0; i < numRays; i++) {
+        // Calculate direction for this ray
+        const angle = startAngle + i * stepAngle;
+        const direction = cameraDirection.clone().applyAxisAngle(rotationAxis, angle);
+
         const raycaster = new THREE.Raycaster();
-        
-        // Calculate random direction within cone in front of the camera
-        const theta = Math.acos(Math.random() * (1 - Math.cos(coneAngle)));
-        const phi = Math.random() * 2 * Math.PI;
-        const direction = new THREE.Vector3(
-            Math.sin(theta) * Math.cos(phi),
-            Math.sin(theta) * Math.sin(phi),
-            Math.cos(theta)
-        ).normalize();
-        
         raycaster.set(this.camera.position, direction);
         const intersects = raycaster.intersectObjects(this.scene.children, true);
 
@@ -35,6 +44,7 @@ class Scanner {
         }
     }
 }
+
 
 
 
