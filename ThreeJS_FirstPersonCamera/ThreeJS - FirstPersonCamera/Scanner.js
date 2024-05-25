@@ -1,65 +1,73 @@
-import * as THREE from 'three';
+import * as THREE from 'https://cdn.skypack.dev/three@0.136';
 
 class Scanner {
   constructor(scene, camera) {
     this.scene = scene;
     this.camera = camera;
+    this.dots = [];
+    this.dotLifetime = 2.0; // Dots will last for 2 seconds
 
-    this.scannerMaterial = new THREE.PointsMaterial({
-      size: 0.05, // Adjust the size of the dots
-      sizeAttenuation: false,
-      color: 0xffffff, // Color of the dots
+    // Point cloud setup
+    this.dotCount = 1000;
+    this.positions = new Float32Array(this.dotCount * 3);
+    this.pointCloudGeometry = new THREE.BufferGeometry();
+    this.pointCloudGeometry.setAttribute('position', new THREE.BufferAttribute(this.positions, 3));
+
+    const pointCloudMaterial = new THREE.PointsMaterial({
+      color: 0xff0000,
+      size: 0.1,
       transparent: true,
-      opacity: 0.5, // Opacity of the dots
+      opacity: 1.0,
     });
 
-    // Initialize vertices array
-    this.vertices = [];
-
-    this.scannerPoints = new THREE.Points(new THREE.BufferGeometry(), this.scannerMaterial);
-    this.scene.add(this.scannerPoints);
-
-    // Boolean to track if scanner is active
-    this.active = false;
-
-    // Event listener for left mouse click
-    document.addEventListener('mousedown', this.onMouseDown.bind(this), false);
+    this.pointCloud = new THREE.Points(this.pointCloudGeometry, pointCloudMaterial);
+    this.scene.add(this.pointCloud);
   }
 
-  onMouseDown(event) {
-    if (event.button === 0) { // Left mouse button
-      // Start or stop the scanner depending on its current state
-      this.active = !this.active;
+  scan() {
+    const density = 50; // Number of rays to cast
+    const maxDistance = 100; // Maximum distance to cast rays
+
+    for (let i = 0; i < density; i++) {
+      const raycaster = new THREE.Raycaster();
+      const direction = new THREE.Vector3(
+        (Math.random() * 2 - 1),
+        (Math.random() * 2 - 1),
+        (Math.random() * 2 - 1)
+      ).normalize();
+
+      raycaster.set(this.camera.position, direction);
+      const intersects = raycaster.intersectObjects(this.scene.children, true);
+
+      if (intersects.length > 0) {
+        const intersect = intersects[0];
+        this.addDot(intersect.point);
+      }
     }
+  }
+
+  addDot(position) {
+    const index = this.dots.length % this.dotCount;
+    this.positions[index * 3] = position.x;
+    this.positions[index * 3 + 1] = position.y;
+    this.positions[index * 3 + 2] = position.z;
+    this.dots.push({ position, timestamp: performance.now(), index });
+
+    this.pointCloudGeometry.attributes.position.needsUpdate = true;
   }
 
   update() {
-    if (this.active) {
-      // Get the direction vector from camera to a point in front of it
-      const direction = new THREE.Vector3(0, 0, -1);
-      direction.applyQuaternion(this.camera.quaternion);
-      direction.normalize();
-  
-      // Raycast from camera position to detect intersection with objects
-      const raycaster = new THREE.Raycaster(this.camera.position, direction);
-      const intersects = raycaster.intersectObjects(this.scene.children, true);
-  
-      // Clear existing points
-      this.vertices.length = 0;
-  
-      // Add points to the scanner
-      intersects.forEach(intersect => {
-        const point = intersect.point.clone();
-        this.vertices.push(point);
-      });
-  
-      // Update scanner points geometry
-      this.scannerPoints.geometry.setFromPoints(this.vertices);
-      this.scannerPoints.visible = true;
-    } else {
-      // Hide scanner when not active
-      this.scannerPoints.visible = false;
+    const now = performance.now();
+    const newDots = [];
+    for (const dot of this.dots) {
+      const elapsed = (now - dot.timestamp) / 1000.0;
+      if (elapsed < this.dotLifetime) {
+        newDots.push(dot);
+        const alpha = 1.0 - (elapsed / this.dotLifetime);
+        this.pointCloud.material.opacity = alpha;
+      }
     }
+    this.dots = newDots;
   }
 }
 
