@@ -140,6 +140,7 @@ class FirstPersonCamera {
     this.headBobActive_ = false;
     this.headBobTimer_ = 0;
     this.objects_ = objects;
+    this.velocity_ = new THREE.Vector3(); // Add this line to initialize velocity 
   }
 
   update(timeElapsedS) {
@@ -251,11 +252,12 @@ class FirstPersonCameraDemo {
     this.previousRAF_ = null;
     this.raf_();
     this.onWindowResize_();
+    
   }
 
   initializeDemo_() {
-
     this.fpsCamera_ = new FirstPersonCamera(this.camera_, this.objects_);
+    this.scanner_ = new Scanner(this.scene_, this.camera_);
   }
 
   initializeRenderer_() {
@@ -287,6 +289,13 @@ class FirstPersonCameraDemo {
     this.uiCamera_ = new THREE.OrthographicCamera(
         -1, 1, 1 * aspect, -1 * aspect, 1, 1000);
     this.uiScene_ = new THREE.Scene();
+
+    window.addEventListener('mousedown', (e) => {
+      if (e.button === 0) {
+        this.scanner_.scan();
+      }
+    });
+
   }
 
   initializeScene_() {
@@ -305,7 +314,7 @@ class FirstPersonCameraDemo {
     const snakingArray = terrainGenerator.generateMaze(10,10);
 
     terrainGenerator.CreateGrid(snakingArray,70);
-    console.log(snakingArray.map(row => row.join(' ')).join('\n'));
+    //console.log(snakingArray.map(row => row.join(' ')).join('\n'));
 
     this.objects_ = [];
 
@@ -319,6 +328,8 @@ class FirstPersonCameraDemo {
     this.sprite_.position.set(0, 0, -10);
 
     this.uiScene_.add(this.sprite_);
+
+    
 }
 
 
@@ -426,6 +437,7 @@ class FirstPersonCameraDemo {
     //console.log(this.camera_.rotation)
     this.updateSpotlightPosition();
     this.fpsCamera_.update(timeElapsedS);
+    this.scanner_.update(timeElapsedS);
   }
 }
 
