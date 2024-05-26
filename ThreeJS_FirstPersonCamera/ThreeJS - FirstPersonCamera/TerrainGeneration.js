@@ -13,17 +13,12 @@ class TerrainGeneration {
     this.normalTexture = normalTexture;
 
   }
-
-  PrintToConsole() {
-    console.log("success")
-  }
-
   AccessGrid(x, y, definition) {
     var index = x * definition + y;
     return index;
   }
 
-  CreateWall(position, rotationX, rotationY, noiseDivisor, floorSize) {
+  CreateWall(position, rotationX, rotationY,rotationZ, noiseDivisor, floorSize) {
     const newGeom = new THREE.BufferGeometry();
     const noise = createNoise2D();
     const step = floorSize / this.floorDefinition;
@@ -43,7 +38,7 @@ class TerrainGeneration {
         pos.x -= floorSize / 2;
         pos.y -= floorSize / 2;
 
-        var noiseValue = noise(i / divisor, j / divisor) * falloff(i * step, j * step, 10);
+        var noiseValue = noise(i / divisor, j / divisor) * falloff(i * step, j * step, 20);
         var height = (noiseValue + 1) / 2;
         pos.z = height * 10;
 
@@ -87,7 +82,7 @@ class TerrainGeneration {
 
     floor.position.copy(position);
 
-    const euler = new THREE.Euler(rotationX, rotationY, 0);
+    const euler = new THREE.Euler(rotationX, rotationY, rotationZ);
     const quaternion = new THREE.Quaternion().setFromEuler(euler);
     floor.quaternion.copy(quaternion);
     const terrainBody = this.GenerateTriMesh(floor, quaternion);
@@ -113,8 +108,6 @@ class TerrainGeneration {
   CreateRoom(centrePoint, floorSize, grid, gridPos) {
     const walls = [];
     const wallSize = floorSize / 3; // Define wall size
-    this.CreateWall(4, 4, 4,)
-    console.log(gridPos)
 
     const isAdjacentWall = (x, y) => {
         if (x < 0 || y < 0 || x >= grid.length || y >= grid[0].length) {
@@ -123,39 +116,60 @@ class TerrainGeneration {
         return grid[x][y] === 1;
     };
 
+    const isCornerTurn = (x, y) => {
+      const adjacentWalls = [
+        isAdjacentWall(x - 1, y),
+        isAdjacentWall(x + 1, y),
+        isAdjacentWall(x, y - 1),
+        isAdjacentWall(x, y + 1),
+      ].filter(Boolean).length;
+
+      return adjacentWalls === 2 && (
+        (isAdjacentWall(x - 1, y) && isAdjacentWall(x, y - 1)) ||
+        (isAdjacentWall(x - 1, y) && isAdjacentWall(x, y + 1)) ||
+        (isAdjacentWall(x + 1, y) && isAdjacentWall(x, y - 1)) ||
+        (isAdjacentWall(x + 1, y) && isAdjacentWall(x, y + 1))
+      );
+    };
+
+
     // Create walls based on adjacent cellsaw
     if (!isAdjacentWall(gridPos.x - 1, gridPos.y)) {
-        const wall1 = this.CreateWall(
-            new THREE.Vector3(centrePoint.x - floorSize / 2, centrePoint.y, centrePoint.z),
-            0, Math.PI / 2, wallSize, floorSize
+      console.log(centrePoint);
+        const leftWall = this.CreateWall(
+            new THREE.Vector3(centrePoint.x - floorSize/1.67, centrePoint.y, centrePoint.z),
+            0, Math.PI / 2,Math.PI/2, wallSize, floorSize
         );
-        walls.push(wall1);
+        walls.push(leftWall);
     }
     if (!isAdjacentWall(gridPos.x + 1, gridPos.y)) {
-        const wall2 = this.CreateWall(
-            new THREE.Vector3(centrePoint.x + floorSize / 3, centrePoint.y, centrePoint.z),
-            0, Math.PI / 2, wallSize, floorSize
+      console.log(centrePoint);
+        const rightWall = this.CreateWall(
+            new THREE.Vector3(centrePoint.x + floorSize/2.8, centrePoint.y, centrePoint.z),
+            0, Math.PI / 2,Math.PI/2, wallSize, floorSize
         );
-        walls.push(wall2);
+        walls.push(rightWall);
     }
     if (!isAdjacentWall(gridPos.x, gridPos.y - 1)) {
-        const wall3 = this.CreateWall(
-            new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z - floorSize / 2),
-            0, 0, wallSize, floorSize
+      console.log(centrePoint.z + floorSize);
+        const frontWall = this.CreateWall(
+            new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z - floorSize/1.67),
+            0, 0,0, wallSize, floorSize
         );
-        walls.push(wall3);
+        walls.push(frontWall);
     }
     if (!isAdjacentWall(gridPos.x, gridPos.y + 1)) {
-        const wall4 = this.CreateWall(
-            new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z + floorSize / 3),
-            0, 0, wallSize, floorSize
+      console.log(centrePoint.z - floorSize);
+        const backWall = this.CreateWall(
+            new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z + floorSize/2.8),
+            0, 0,0, wallSize, floorSize 
         );
-        walls.push(wall4);
+        walls.push(backWall);
     }
 
     // Create floor and ceiling
-    const floor = this.CreateWall(new THREE.Vector3(centrePoint.x, centrePoint.y - floorSize / 4, centrePoint.z), Math.PI / 2, 0, 1000, floorSize);
-    const ceiling = this.CreateWall(new THREE.Vector3(centrePoint.x, centrePoint.y + floorSize / 2, centrePoint.z), Math.PI / 2, 0, 1000, floorSize);
+    const floor = this.CreateWall(new THREE.Vector3(centrePoint.x, centrePoint.y - floorSize/2.5, centrePoint.z), Math.PI / 2, 0,0, 1000, floorSize);
+    const ceiling = this.CreateWall(new THREE.Vector3(centrePoint.x, centrePoint.y + floorSize/2, centrePoint.z), Math.PI / 2, 0,0, 1000, floorSize);
 
     const room = {
         walls: walls.map(w => w.mesh),
@@ -222,7 +236,7 @@ class TerrainGeneration {
     }
   
     function carvePath(x, y) {
-      maze[x][y] = 1; // Mark the cell as part of the path
+      maze[x][y] = 1;
       const shuffledDirections = shuffle(directions.slice());
   
       for (const [dx, dy] of shuffledDirections) {

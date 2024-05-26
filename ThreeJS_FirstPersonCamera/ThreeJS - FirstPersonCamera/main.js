@@ -302,10 +302,15 @@ class FirstPersonCameraDemo {
 
     const terrainGenerator = new TerrainGeneration(this.scene_,physicsWorld, rockTexture, rockNormal, 25);
     
-    const snakingArray = terrainGenerator.generateMaze(10,10);
+    const snakingArray = [
+      [1, 1, 1],
+      [0, 0, 1],
+      [1, 1, 1]
+    ];
 
-    terrainGenerator.CreateGrid(snakingArray,70);
-    console.log(snakingArray.map(row => row.join(' ')).join('\n'));
+    terrainGenerator.CreateGrid(snakingArray,50, true);
+    //terrainGenerator.CreateRoom(new THREE.Vector3(0,0,0), 50, snakingArray,new THREE.Vector2(0,0))
+    console.log(snakingArray[0][0]);
 
     this.objects_ = [];
 
