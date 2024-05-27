@@ -88,8 +88,7 @@ class TerrainGeneration {
     const terrainBody = this.GenerateTriMesh(floor, quaternion);
     this.scene.add(floor);
     this.physicsWorld.addBody(terrainBody);
-
-    return { mesh: floor, body: terrainBody };
+    return { mesh: floor, body: terrainBody};
   }
 
   GenerateTriMesh(mesh, quaternion) {
@@ -135,7 +134,6 @@ class TerrainGeneration {
 
     // Create walls based on adjacent cellsaw
     if (!isAdjacentWall(gridPos.x - 1, gridPos.y)) {
-      console.log(centrePoint);
         const leftWall = this.CreateWall(
             new THREE.Vector3(centrePoint.x - floorSize/1.67, centrePoint.y, centrePoint.z),
             0, Math.PI / 2,Math.PI/2, wallSize, floorSize
@@ -143,7 +141,6 @@ class TerrainGeneration {
         walls.push(leftWall);
     }
     if (!isAdjacentWall(gridPos.x + 1, gridPos.y)) {
-      console.log(centrePoint);
         const rightWall = this.CreateWall(
             new THREE.Vector3(centrePoint.x + floorSize/2.8, centrePoint.y, centrePoint.z),
             0, Math.PI / 2,Math.PI/2, wallSize, floorSize
@@ -151,7 +148,6 @@ class TerrainGeneration {
         walls.push(rightWall);
     }
     if (!isAdjacentWall(gridPos.x, gridPos.y - 1)) {
-      console.log(centrePoint.z + floorSize);
         const frontWall = this.CreateWall(
             new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z - floorSize/1.67),
             0, 0,0, wallSize, floorSize
@@ -159,7 +155,6 @@ class TerrainGeneration {
         walls.push(frontWall);
     }
     if (!isAdjacentWall(gridPos.x, gridPos.y + 1)) {
-      console.log(centrePoint.z - floorSize);
         const backWall = this.CreateWall(
             new THREE.Vector3(centrePoint.x, centrePoint.y, centrePoint.z + floorSize/2.8),
             0, 0,0, wallSize, floorSize 
