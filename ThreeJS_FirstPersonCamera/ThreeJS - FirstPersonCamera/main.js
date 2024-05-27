@@ -47,9 +47,28 @@ class InputController {
     this.previous_ = null;
     this.keys_ = {};
     this.previousKeys_ = {};
-    this.target_.addEventListener('mousedown', (e) => this.onMouseDown_(e), false);
+
+    this.isScannerActive_ = false;
+    this.scanInterval_ = null;
+
+    // Update the event listener to track mouse down and up events for the left button
+    window.addEventListener('mousedown', (e) => {
+      if (e.button === 0) {
+        this.isLeftMouseDown_ = true;
+        // Start the scanner when the left mouse button is pressed down
+        this.startScanner_();
+      }
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      if (e.button === 0) {
+        this.isLeftMouseDown_ = false;
+        // Stop the scanner when the left mouse button is released
+        this.stopScanner_();
+      }
+    });
+
     this.target_.addEventListener('mousemove', (e) => this.onMouseMove_(e), false);
-    this.target_.addEventListener('mouseup', (e) => this.onMouseUp_(e), false);
     this.target_.addEventListener('keydown', (e) => this.onKeyDown_(e), false);
     this.target_.addEventListener('keyup', (e) => this.onKeyUp_(e), false);
   }
@@ -293,6 +312,24 @@ class FirstPersonCameraDemo {
     this.cannonDebugRenderer_ = new CannonDebugger(this.scene_, this.physicsWorld_,{
       color: 0xff0000,
     })
+  }
+  
+  startScanner_() {
+    if (!this.isScannerActive_) {
+      this.isScannerActive_ = true;
+      // Start the timer to call the scan function every second
+      this.scanInterval_ = setInterval(() => {
+        this.scanner_.scan();
+      }, 1000);
+    }
+  }
+
+  stopScanner_() {
+    if (this.isScannerActive_) {
+      this.isScannerActive_ = false;
+      // Clear the timer when the left mouse button is released
+      clearInterval(this.scanInterval_);
+    }
   }
   
   initializePhysicsWorld_(){
