@@ -158,6 +158,7 @@ class FirstPersonCamera {
     this.physicsBody_.addEventListener('collide', (event) =>{
       this.activeCollision_ = true;
     });
+    this.velocity_ = new THREE.Vector3();
   }
 
   update(timeElapsedS) {
@@ -279,10 +280,12 @@ class FirstPersonCameraDemo {
     this.previousRAF_ = null;
     this.raf_();
     this.onWindowResize_();
+    
   }
   
   initializeDemo_() {
     this.fpsCamera_ = new FirstPersonCamera(this.camera_, this.objects_, this.physicsWorld_);
+    this.scanner_ = new Scanner(this.scene_, this.camera_);
     this.cannonDebugRenderer_ = new CannonDebugger(this.scene_, this.physicsWorld_,{
       color: 0xff0000,
     })
@@ -323,6 +326,13 @@ class FirstPersonCameraDemo {
     this.uiCamera_ = new THREE.OrthographicCamera(
         -1, 1, 1 * aspect, -1 * aspect, 1, 1000);
     this.uiScene_ = new THREE.Scene();
+
+    window.addEventListener('mousedown', (e) => {
+      if (e.button === 0) {
+        this.scanner_.scan();
+      }
+    });
+
   }
 
   initializeScene_() {
@@ -358,6 +368,8 @@ class FirstPersonCameraDemo {
     this.sprite_.position.set(0, 0, -10);
 
     this.uiScene_.add(this.sprite_);
+
+    
 }
 
 
@@ -365,7 +377,7 @@ class FirstPersonCameraDemo {
 
   initializeLights_() {
   
-    this.spotlight = new THREE.SpotLight(0xFFFFFF, 100.0, 100, Math.PI / 6, 0.5, 1.0);
+    this.spotlight = new THREE.SpotLight(0xFFFFFF, 20.0, 120, Math.PI / 6, 0.8, 1.0);
     this.spotlight.castShadow = true;
     this.spotlight.shadow.bias = -0.00001;
     this.spotlight.shadow.mapSize.width = 4096;
@@ -377,23 +389,18 @@ class FirstPersonCameraDemo {
 
 
     this.ambientLight = new THREE.AmbientLight(0xFFFFFF);
-    this.scene_.add(this.ambientLight);
+    //this.scene_.add(this.ambientLight);
   }
 
   updateSpotlightPosition() {
-  // Set the spotlight's position relative to the camera's position
-  this.spotlight.position.copy(this.camera_.position);
-  const forward = new THREE.Vector3(0, 0, -1);
+    this.spotlight.position.copy(this.camera_.position);
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera_.quaternion);
+    const targetPosition = this.camera_.position.clone().add(forward).add(new THREE.Vector3(0, 0, 0));
+    this.spotlight.target.position.copy(targetPosition);
+    this.spotlight.target.updateMatrixWorld();
+    this.spotlight.lookAt(targetPosition);
+  }
   
-  //Rotate the Spotlight to face the direciton camera is pointing
-  forward.applyQuaternion(this.camera_.quaternion);
-  const targetPosition = new THREE.Vector3().copy(this.camera_.position).add(forward).add(new THREE.Vector3(0, -0.5, 0));;
-  this.spotlight.target.position.copy(targetPosition);
-
-  // Point the spotlight at its target
-  this.spotlight.target.updateMatrixWorld(); //Update target Matrix
-  this.spotlight.lookAt(targetPosition);
-}
 
   loadMaterial_(name, tiling) {
     const mapLoader = new THREE.TextureLoader();
@@ -471,6 +478,7 @@ class FirstPersonCameraDemo {
     //this.cannonDebugRenderer_.update();
     this.updateSpotlightPosition();
     this.fpsCamera_.update(timeElapsedS);
+    //this.scanner_.update(timeElapsedS);
   }
 }
 

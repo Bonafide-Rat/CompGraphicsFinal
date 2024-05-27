@@ -1,66 +1,101 @@
-import * as THREE from 'three';
+import * as THREE from 'https://cdn.skypack.dev/three@0.136';
 
 class Scanner {
   constructor(scene, camera) {
     this.scene = scene;
     this.camera = camera;
-
-    this.scannerMaterial = new THREE.PointsMaterial({
-      size: 0.05, // Adjust the size of the dots
-      sizeAttenuation: false,
-      color: 0xffffff, // Color of the dots
-      transparent: true,
-      opacity: 0.5, // Opacity of the dots
-    });
-
-    // Initialize vertices array
-    this.vertices = [];
-
-    this.scannerPoints = new THREE.Points(new THREE.BufferGeometry(), this.scannerMaterial);
-    this.scene.add(this.scannerPoints);
-
-    // Boolean to track if scanner is active
-    this.active = false;
-
-    // Event listener for left mouse click
-    document.addEventListener('mousedown', this.onMouseDown.bind(this), false);
+    this.dots = [];
+    this.dotLifetime = 20.0; // Dots will last for 2 seconds
   }
 
-  onMouseDown(event) {
-    if (event.button === 0) { // Left mouse button
-      // Start or stop the scanner depending on its current state
-      this.active = !this.active;
-    }
+  scan() {
+    this.targetScan();
+    this.horizontalScan();
   }
 
-  update() {
-    if (this.active) {
-      // Get the direction vector from camera to a point in front of it
-      const direction = new THREE.Vector3(0, 0, -1);
-      direction.applyQuaternion(this.camera.quaternion);
-      direction.normalize();
-  
-      // Raycast from camera position to detect intersection with objects
-      const raycaster = new THREE.Raycaster(this.camera.position, direction);
+  targetScan() {
+    const density = 1; // Number of dots to generate
+    const coneAngle = Math.PI / 2; // Cone angle in radians (90 degrees)
+    const numRays = 50; // Number of rays to cast within the cone
+
+    // Get camera direction
+    const cameraDirection = new THREE.Vector3();
+    this.camera.getWorldDirection(cameraDirection);
+
+    // Calculate rotation axis perpendicular to camera direction
+    const rotationAxis = new THREE.Vector3();
+    rotationAxis.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0)).normalize();
+
+    // Calculate step angle between each ray
+    const stepAngle = coneAngle / numRays;
+
+    // Start angle for the first ray
+    const startAngle = -coneAngle / 2;
+
+    for (let i = 0; i < numRays; i++) {
+      // Calculate direction for this ray
+      const angle = startAngle + i * stepAngle;
+      const direction = cameraDirection.clone().applyAxisAngle(rotationAxis, angle);
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.set(this.camera.position, direction);
       const intersects = raycaster.intersectObjects(this.scene.children, true);
-  
-      // Clear existing points
-      this.vertices.length = 0;
-  
-      // Add points to the scanner
-      intersects.forEach(intersect => {
-        const point = intersect.point.clone();
-        this.vertices.push(point);
-      });
-  
-      // Update scanner points geometry
-      this.scannerPoints.geometry.setFromPoints(this.vertices);
-      this.scannerPoints.visible = true;
-    } else {
-      // Hide scanner when not active
-      this.scannerPoints.visible = false;
+
+      if (intersects.length > 0) {
+        const intersect = intersects[0];
+        const dot = this.createDot(intersect.point);
+        this.dots.push({ dot, timestamp: performance.now() });
+      }
     }
   }
+
+  horizontalScan() {
+    const numRays = 40; // Number of rays to cast (360 degrees / 30 degrees = 12)
+    const intervalAngle = Math.PI / 20; // Interval angle in radians (30 degrees)
+
+    // Get camera position
+    const cameraPosition = this.camera.position.clone();
+
+    for (let i = 0; i < numRays; i++) {
+      // Calculate direction for this ray
+      const angle = i * intervalAngle;
+      const direction = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+
+      const raycaster = new THREE.Raycaster(cameraPosition, direction);
+      const intersects = raycaster.intersectObjects(this.scene.children, true);
+
+      if (intersects.length > 0) {
+        const intersect = intersects[0];
+        const dot = this.createDot(intersect.point);
+        this.dots.push({ dot, timestamp: performance.now() });
+      }
+    }
+  }
+
+  createDot(position) {
+    const geometry = new THREE.SphereGeometry(0.1, 8, 8);
+    const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const dot = new THREE.Mesh(geometry, material);
+    dot.position.copy(position);
+    this.scene.add(dot);
+    return dot;
+  }
+
+  /*update() {
+    const now = performance.now();
+    for (let i = this.dots.length - 1; i >= 0; i--) {
+      const { dot, timestamp } = this.dots[i];
+      const elapsed = (now - timestamp) / 1000.0;
+      if (elapsed > this.dotLifetime) {
+        this.scene.remove(dot);
+        this.dots.splice(i, 1);
+      } else {
+        const alpha = 1.0 - elapsed / this.dotLifetime;
+        dot.material.opacity = alpha;
+        dot.material.transparent = true;
+      }
+    }
+  }*/
 }
 
 export default Scanner;
