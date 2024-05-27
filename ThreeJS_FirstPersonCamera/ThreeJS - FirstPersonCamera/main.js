@@ -385,7 +385,7 @@ class FirstPersonCameraDemo {
     this.spotlight.shadow.camera.near = 1;
     this.spotlight.shadow.camera.far = 100;
     this.spotlight.position.copy(this.camera_.position);
-    this.scene_.add(this.spotlight);
+    //this.scene_.add(this.spotlight);
 
 
     this.ambientLight = new THREE.AmbientLight(0xFFFFFF);
