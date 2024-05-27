@@ -145,6 +145,7 @@ class FirstPersonCamera {
     this.initializePhysicsBody_();
     this.initializePhysicsEvents_();
     this.activeCollision_ = false;
+    this.translationSaved_ = false;
   }
   
   initializePhysicsBody_(){
@@ -156,7 +157,12 @@ class FirstPersonCamera {
   
   initializePhysicsEvents_(){
     this.physicsBody_.addEventListener('collide', (event) =>{
-      this.activeCollision_ = true;
+      if (!this.activeCollision_ && !this.translationSaved_) {
+        this.activeCollision_ = true;
+        this.translationSaved_ = true;
+        this.currentTranslation_ = this.translation_.clone();
+        console.log("collided")
+      }
     });
     this.velocity_ = new THREE.Vector3();
   }
@@ -173,7 +179,7 @@ class FirstPersonCamera {
   updateCamera_(_) {
     this.camera_.quaternion.copy(this.rotation_);
     if (!this.activeCollision_) {
-      this.camera_.position.copy(this.currentTranslation_);
+      this.camera_.position.copy(this.translation_);
     }
     this.camera_.position.y += Math.sin(this.headBobTimer_ * 10) * 1.5;
     const forward = new THREE.Vector3(0, 0, -1);
@@ -212,7 +218,7 @@ class FirstPersonCamera {
   updateTranslation_(timeElapsedS) {
     const forwardVelocity = ((this.input_.key(KEYS.w) ? 1 : 0) + (this.input_.key(KEYS.s) ? -1 : 0)) * moveSpeed;
     const strafeVelocity = ((this.input_.key(KEYS.a) ? 1 : 0) + (this.input_.key(KEYS.d) ? -1 : 0)) * moveSpeed;
-
+    
     const qx = new THREE.Quaternion();
     qx.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.phi_);
 
@@ -226,14 +232,12 @@ class FirstPersonCamera {
     
     this.translation_.add(forward);
     this.translation_.add(left);
-    if (!this.activeCollision_){
-      this.currentTranslation_.copy(this.translation_);
-    }
+    
     
     if (this.activeCollision_){
-      console.log(this.currentTranslation_.dot(this.translation_));
-      if (this.currentTranslation_.normalize().dot(this.translation_.normalize()) <= 0){
-        console.log("reverse");
+      console.log(`Stored translation: (${this.currentTranslation_.x}, ${this.currentTranslation_.y}, ${this.currentTranslation_.z}) Realtime Translation: (${this.translation_.x}, ${this.translation_.y}, ${this.translation_.z})`);
+      if (this.translation_.normalize().dot(this.currentTranslation_.normalize()) < 0) {
+        //console.log("reverse");
         this.activeCollision_ = false;
       }
     }
@@ -372,11 +376,7 @@ class FirstPersonCameraDemo {
     
 }
 
-
-
-
   initializeLights_() {
-  
     this.spotlight = new THREE.SpotLight(0xFFFFFF, 20.0, 120, Math.PI / 6, 0.8, 1.0);
     this.spotlight.castShadow = true;
     this.spotlight.shadow.bias = -0.00001;
