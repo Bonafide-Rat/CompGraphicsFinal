@@ -437,7 +437,7 @@ class FirstPersonCameraDemo {
     //console.log(this.camera_.rotation)
     this.updateSpotlightPosition();
     this.fpsCamera_.update(timeElapsedS);
-    this.scanner_.update(timeElapsedS);
+    //this.scanner_.update(timeElapsedS);
   }
 }
 
