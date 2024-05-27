@@ -234,10 +234,12 @@ class FirstPersonCamera {
     
     
     if (this.activeCollision_){
-      console.log(`Stored translation: (${this.currentTranslation_.x}, ${this.currentTranslation_.y}, ${this.currentTranslation_.z}) Realtime Translation: (${this.translation_.x}, ${this.translation_.y}, ${this.translation_.z})`);
-      if (this.translation_.normalize().dot(this.currentTranslation_.normalize()) < 0) {
+      //console.log(`Stored translation: (${this.currentTranslation_.x}, ${this.currentTranslation_.y}, ${this.currentTranslation_.z}) Realtime Translation: (${this.translation_.x}, ${this.translation_.y}, ${this.translation_.z})`);
+      if (this.translation_.normalize().dot(this.currentTranslation_.normalize()) < 0.5) {
         //console.log("reverse");
         this.activeCollision_ = false;
+        //this.physicsBody_.mass = 1;
+        this.translationSaved_ = false;
       }
     }
   }
