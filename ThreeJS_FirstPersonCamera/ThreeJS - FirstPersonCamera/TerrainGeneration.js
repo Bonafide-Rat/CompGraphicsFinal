@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { createNoise2D } from 'simplex-noise';
 import * as CANNON from 'cannon-es';
+import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
 
 
 class TerrainGeneration {
@@ -11,6 +12,7 @@ class TerrainGeneration {
     this.floorDefinition = definitionLevel;
     this.texture = texture;
     this.normalTexture = normalTexture;
+    this.FBXLoader = new FBXLoader();
 
   }
   AccessGrid(x, y, definition) {
@@ -182,7 +184,7 @@ class TerrainGeneration {
     }
   }
 
-  CreateGrid(grid, floorSize) {
+  CreateGrid(grid, floorSize, scene) {
 
     const rows = grid.length;
     const columns = grid[1].length;
@@ -193,10 +195,44 @@ class TerrainGeneration {
           const xPos = i * roomSpacing;
           const zPos = j * roomSpacing;
           this.CreateRoom(new THREE.Vector3(xPos, 0, zPos), floorSize, grid, new THREE.Vector2(i, j));
+          if (i == rows -1 && j == columns - 1) {
+            this.SpawnStatue("resources/models/statue.fbx", xPos, zPos,scene);
+          }
         }
-
       }
     }
+  }
+  
+  SpawnStatue(pathToModel,xPos,zPos,scene){
+    this.FBXLoader.load(pathToModel, (object) =>{
+      object.position.set(xPos-4,-25,zPos+7);
+      object.scale.set(2.5,2.5,2.5);
+      object.rayHits = 0;
+      object.traverse(function (child){
+        if (child.isMesh){
+          child.material = new THREE.MeshPhongMaterial({color: 0xffffff});
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      })
+      scene.add(object);
+      const spotlight = new THREE.SpotLight(0xffffff, 1000);
+      const lightHelper = new THREE.DirectionalLightHelper(spotlight,  10);
+      scene.add(lightHelper);
+      spotlight.position.set(xPos,19,zPos);
+      spotlight.distance = 50;
+      spotlight.castShadow = true;
+      spotlight.angle = -Math.PI/4;
+      spotlight.penumbra = 0.6;
+      spotlight.decay = 1;
+      spotlight.target.position.set(xPos,-25,zPos);
+      spotlight.target.updateMatrixWorld();
+      scene.add(spotlight);
+    }, (xhr) => {
+      console.log((xhr.loaded/xhr.total) * 100 + "% loaded.");
+    },(error) => {
+      console.log(error);
+    });
   }
 
   RemoveWalls(room) {

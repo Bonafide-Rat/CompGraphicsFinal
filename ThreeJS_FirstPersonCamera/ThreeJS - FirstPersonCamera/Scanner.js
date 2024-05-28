@@ -63,11 +63,20 @@ class Scanner {
 
       const raycaster = new THREE.Raycaster(cameraPosition, direction);
       const intersects = raycaster.intersectObjects(this.scene.children, true);
-
+      
       if (intersects.length > 0) {
         const intersect = intersects[0];
         const dot = this.createDot(intersect.point);
         this.dots.push({ dot, timestamp: performance.now() });
+        let targetObject = intersect.object;
+        while (targetObject && !targetObject.rayHits) {
+          targetObject = targetObject.parent;
+        }
+
+        if (targetObject && targetObject.rayHits != null) {
+          targetObject.rayHits++;
+          console.log(`Hit statue, rayHits: ${targetObject.rayHits}`);
+        }
       }
     }
   }

@@ -56,7 +56,7 @@ class InputController {
       if (e.button === 0) {
         this.isLeftMouseDown_ = true;
         // Start the scanner when the left mouse button is pressed down
-        this.startScanner_();
+        //this.startScanner_();
       }
     });
 
@@ -64,7 +64,7 @@ class InputController {
       if (e.button === 0) {
         this.isLeftMouseDown_ = false;
         // Stop the scanner when the left mouse button is released
-        this.stopScanner_();
+        //this.stopScanner_();
       }
     });
 
@@ -178,9 +178,9 @@ class FirstPersonCamera {
     this.physicsBody_.addEventListener('collide', (event) =>{
       if (!this.activeCollision_ && !this.translationSaved_) {
         this.activeCollision_ = true;
-        this.translationSaved_ = true;
         this.currentTranslation_ = this.translation_.clone();
-        console.log("collided")
+        this.translationSaved_ = true;
+        console.log(`collided,SavedTranslation: ${this.currentTranslation_.x},${this.currentTranslation_.y},${this.currentTranslation_.z} CollisionStatus: ${this.activeCollision_}`);
       }
     });
     this.velocity_ = new THREE.Vector3();
@@ -196,11 +196,12 @@ class FirstPersonCamera {
   }
 
   updateCamera_(_) {
-    this.camera_.quaternion.copy(this.rotation_);
+    
     if (!this.activeCollision_) {
       this.camera_.position.copy(this.translation_);
+      this.camera_.quaternion.copy(this.rotation_);
     }
-    this.camera_.position.y += Math.sin(this.headBobTimer_ * 10) * 1.5;
+    //this.camera_.position.y += Math.sin(this.headBobTimer_ * 10) * 1.5;
     const forward = new THREE.Vector3(0, 0, -1);
     forward.applyQuaternion(this.rotation_);
     const dir = forward.clone();
@@ -255,11 +256,14 @@ class FirstPersonCamera {
     
     if (this.activeCollision_){
       //console.log(`Stored translation: (${this.currentTranslation_.x}, ${this.currentTranslation_.y}, ${this.currentTranslation_.z}) Realtime Translation: (${this.translation_.x}, ${this.translation_.y}, ${this.translation_.z})`);
-      if (this.translation_.normalize().dot(this.currentTranslation_.normalize()) < 0.5) {
-        //console.log("reverse");
+      const dummyTrans1 = this.translation_.clone();
+      const dummyTrans2 = this.currentTranslation_.clone();
+      if (dummyTrans1.normalize().dot(dummyTrans2.normalize()) < 0.5) {
         this.activeCollision_ = false;
         //this.physicsBody_.mass = 1;
         this.translationSaved_ = false;
+        this.translation_ = this.currentTranslation_.clone();
+        console.log(`reverse, ${this.translation_.x},${this.translation_.y},${this.translation_.z}`);
       }
     }
   }
@@ -395,10 +399,13 @@ class FirstPersonCameraDemo {
       [0, 0, 1],
       [1, 1, 1]
     ];
-
-    terrainGenerator.CreateGrid(snakingArray,50, true);
+    const randMaze = terrainGenerator.generateMaze(10,10);
+    for (let i = 0; i<randMaze.length; ++i) {
+      console.log(randMaze[i].join(' '));
+    }
+    terrainGenerator.CreateGrid(randMaze,50, this.scene_);
     //terrainGenerator.CreateRoom(new THREE.Vector3(0,0,0), 50, snakingArray,new THREE.Vector2(0,0))
-
+    //terrainGenerator.CreateFinalRoom();
     this.objects_ = [];
 
     // Crosshair
