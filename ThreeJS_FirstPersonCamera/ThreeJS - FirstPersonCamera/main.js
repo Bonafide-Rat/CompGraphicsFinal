@@ -1,14 +1,8 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.136';
 
-import {FirstPersonControls} from 'https://cdn.skypack.dev/three@0.136/examples/jsm/controls/FirstPersonControls.js';
-
 import TerrainGeneration from './TerrainGeneration';
 
 import Scanner from './Scanner';
-
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-
-import { createNoise2D } from 'simplex-noise';
 
 import * as CANNON from 'cannon-es';
 
@@ -17,6 +11,10 @@ import CannonDebugger from 'cannon-es-debugger';
 import Stats from 'stats.js';
 
 const moveSpeed = 3;
+const gameElement = document.getElementById('game_container');
+gameElement.onclick = () =>{
+  document.body.requestPointerLock();
+}
 
 const KEYS = {
   'a': 65,
